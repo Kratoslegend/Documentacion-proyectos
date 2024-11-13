@@ -1,7 +1,7 @@
 name: Asignar Puntos por Documentación
 on:
   pull_request:
-    types: [closed]
+    types: [closed]  # Ejecutar la acción cuando se cierre (o fusione) un PR.
 
 jobs:
   assign_points:
@@ -10,30 +10,43 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Configurar Git para Commits
+    - name: Configurar Git
       run: |
         git config --global user.name "github-actions"
         git config --global user.email "github-actions@github.com"
 
     - name: Actualizar tabla de puntos
       run: |
-        # Verifica si el archivo scoreboard.md existe
-        if test -f scoreboard.md; then
-          # Si el archivo existe, añade puntos al desarrollador
-          echo "$GITHUB_ACTOR ha ganado 100 puntos" >> scoreboard.md
+        POINTS_FILE="scoreboard.md"
+        NEW_POINTS=100  # Define cuántos puntos se asignarán por cada Pull Request.
+        
+        # Verifica si el archivo scoreboard.md existe.
+        if [[ -f "$POINTS_FILE" ]]; then
+          # Si el archivo existe, actualiza los puntos.
+          if grep -q "$GITHUB_ACTOR" "$POINTS_FILE"; then
+            # Si el usuario ya existe, extrae los puntos actuales y suma los nuevos.
+            CURRENT_POINTS=$(grep "$GITHUB_ACTOR" "$POINTS_FILE" | awk '{print $3}')
+            UPDATED_POINTS=$((CURRENT_POINTS + NEW_POINTS))
+            # Actualiza la tabla con los nuevos puntos.
+            sed -i "s/| $GITHUB_ACTOR | $CURRENT_POINTS |/| $GITHUB_ACTOR | $UPDATED_POINTS |/" "$POINTS_FILE"
+          else
+            # Si el usuario no existe, añade una nueva fila con los puntos iniciales.
+            echo "| $GITHUB_ACTOR | $NEW_POINTS |" >> "$POINTS_FILE"
+          fi
         else
-          # Si el archivo no existe, lo crea con la tabla de puntos inicial
-          echo "# Tabla de Puntuación" > scoreboard.md
-          echo "| Desarrollador | Puntos |" >> scoreboard.md
-          echo "|---------------|--------|" >> scoreboard.md
-          echo "| $GITHUB_ACTOR | 100 |" >> scoreboard.md
+          # Si el archivo no existe, crea el archivo inicial con la tabla de puntos.
+          echo "# Tabla de Puntuación" > "$POINTS_FILE"
+          echo "| Desarrollador | Puntos |" >> "$POINTS_FILE"
+          echo "|---------------|--------|" >> "$POINTS_FILE"
+          echo "| $GITHUB_ACTOR | $NEW_POINTS |" >> "$POINTS_FILE"
         fi
 
     - name: Commit y Push de la tabla de puntuación
       run: |
         git add scoreboard.md
-        git commit -m "Actualizar tabla de puntuación para $GITHUB_ACTOR"
+        git commit -m "Actualizar tabla de puntos para $GITHUB_ACTOR"
         git push origin HEAD:main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
