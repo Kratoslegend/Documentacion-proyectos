@@ -8,6 +8,3 @@
 |                    | 1.000 - 1.199 | Documentador Intermedio Avanzado  | ![Insignia Novato](insignias/Insignia-IntermedioAvanzado.png) |
 |                    | 1.200 - 1.499 | Documentador Maestro  | ![Insignia Novato](insignias/Insignia-Maestro.png) |
 |                    | > 1.500 | Documentador Retador  | ![Insignia Novato](insignias/Insignia-Retador.png) |
-
-
-| Kratoslegend       | 100    | Documentador Novato  | ![Insignia Novato](insignias/Insignia-Novato.png) |
