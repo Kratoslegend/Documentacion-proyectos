@@ -33,6 +33,7 @@ jobs:
       run: |
         git add scoreboard.md
         git commit -m "Actualizar tabla de puntuación para $GITHUB_ACTOR"
-        git push
+        git push origin HEAD:main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
