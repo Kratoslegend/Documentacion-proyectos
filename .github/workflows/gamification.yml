@@ -1,7 +1,7 @@
 name: Asignar Puntos por Documentación
 on:
   pull_request:
-    types: [closed]
+    types: [closed]  # Ejecutar la acción cuando se cierra o fusiona un PR.
 
 jobs:
   assign_points:
@@ -18,7 +18,7 @@ jobs:
     - name: Actualizar tabla de puntos
       run: |
         POINTS_FILE="scoreboard.md"
-        NEW_POINTS=100
+        NEW_POINTS=100  # Asignar 100 puntos por cada PR.
         
         # Verificar si el archivo scoreboard.md existe
         if [[ -f "$POINTS_FILE" ]]; then
@@ -28,9 +28,15 @@ jobs:
           # Leer la tabla existente línea por línea
           while IFS= read -r line; do
             if echo "$line" | grep -q "$GITHUB_ACTOR"; then
-              # Si el usuario ya existe, extraer los puntos actuales, sumar los nuevos, y actualizar nivel e insignia
-              CURRENT_POINTS=$(echo "$line" | awk '{print $3}')
-              UPDATED_POINTS=$((CURRENT_POINTS + NEW_POINTS))
+              # Extraer los puntos actuales: columna 3 (asumiendo que las columnas están separadas por "|")
+              CURRENT_POINTS=$(echo "$line" | awk -F'|' '{print $3}' | tr -d '[:space:]')
+              
+              # Verificar si CURRENT_POINTS es un número válido
+              if [[ "$CURRENT_POINTS" =~ ^[0-9]+$ ]]; then
+                UPDATED_POINTS=$((CURRENT_POINTS + NEW_POINTS))
+              else
+                UPDATED_POINTS=$NEW_POINTS
+              fi
               
               # Asignar el nivel e insignia según los puntos
               if [[ $UPDATED_POINTS -ge 1500 ]]; then
