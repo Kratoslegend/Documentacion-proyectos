@@ -2,6 +2,7 @@ name: Asignar Puntos por Documentación
 on:
   pull_request:
     types: [closed]
+
 jobs:
   assign_points:
     runs-on: ubuntu-latest
@@ -12,5 +13,22 @@ jobs:
     - name: Actualizar tabla de puntos
       run: |
         echo "$GITHUB_ACTOR ha completado una tarea de documentación."
-        # Aquí podrías actualizar un archivo de puntuación o usar un archivo markdown
-        echo "$GITHUB_ACTOR ha ganado 100 puntos por completar esta tarea."
+        # Aquí puedes actualizar un archivo llamado scoreboard.md para registrar los puntos
+        if [[ -f scoreboard.md ]]; then
+          # Si el archivo existe, se actualiza
+          echo "$GITHUB_ACTOR ha ganado 100 puntos" >> scoreboard.md
+        else
+          # Si no existe, se crea el archivo
+          echo "# Tabla de Puntuación" > scoreboard.md
+          echo "| Desarrollador | Puntos |" >> scoreboard.md
+          echo "|---------------|--------|" >> scoreboard.md
+          echo "| $GITHUB_ACTOR | 100 |" >> scoreboard.md
+        fi
+        
+    - name: Commit y Push de la tabla de puntuación
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git add scoreboard.md
+        git commit -m "Actualizar tabla de puntuación para $GITHUB_ACTOR"
+        git push
