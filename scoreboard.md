@@ -6,3 +6,4 @@
 
 Kratoslegend ha ganado 100 puntos
 Kratoslegend ha ganado 100 puntos
+Kratoslegend ha ganado 100 puntos
