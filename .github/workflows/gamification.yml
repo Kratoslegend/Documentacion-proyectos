@@ -1,7 +1,7 @@
 name: Asignar Puntos por Documentación
 on:
   pull_request:
-    types: [closed]  # Se ejecuta cuando se cierra o fusiona un PR.
+    types: [closed]
 
 jobs:
   assign_points:
@@ -18,41 +18,51 @@ jobs:
     - name: Actualizar tabla de puntos
       run: |
         POINTS_FILE="scoreboard.md"
-        NEW_POINTS=100  # Asignar 100 puntos por cada PR.
+        NEW_POINTS=100
         
         # Verificar si el archivo scoreboard.md existe
         if [[ -f "$POINTS_FILE" ]]; then
-          # Verificar si el desarrollador ya está en la tabla
-          if grep -q "$GITHUB_ACTOR" "$POINTS_FILE"; then
-            # Si el desarrollador ya existe, extraer sus puntos actuales y sumar los nuevos
-            CURRENT_POINTS=$(grep "$GITHUB_ACTOR" "$POINTS_FILE" | awk '{print $3}')
-            UPDATED_POINTS=$((CURRENT_POINTS + NEW_POINTS))
-            # Clasificar y asignar nivel e insignia según los puntos
-            if [[ $UPDATED_POINTS -ge 1500 ]]; then
-              LEVEL="Documentador Retador"
-              BADGE="![Insignia Retador](insignias/Insignia-Retador.png)"
-            elif [[ $UPDATED_POINTS -ge 1200 ]]; then
-              LEVEL="Documentador Maestro"
-              BADGE="![Insignia Maestro](insignias/Insignia-Maestro.png)"
-            elif [[ $UPDATED_POINTS -ge 1000 ]]; then
-              LEVEL="Documentador Intermedio Avanzado"
-              BADGE="![Insignia Intermedio Avanzado](insignias/Insignia-IntermedioAvanzado.png)"
-            elif [[ $UPDATED_POINTS -ge 800 ]]; then
-              LEVEL="Documentador Intermedio"
-              BADGE="![Insignia Intermedio](insignias/Insignia-Intermedio.png)"
-            elif [[ $UPDATED_POINTS -ge 500 ]]; then
-              LEVEL="Documentador Principiante"
-              BADGE="![Insignia Principiante](insignias/Insignia-Principiante.png)"
+          # Crear un archivo temporal para construir la nueva tabla
+          TEMP_FILE=$(mktemp)
+          
+          # Leer la tabla existente línea por línea
+          while IFS= read -r line; do
+            if echo "$line" | grep -q "$GITHUB_ACTOR"; then
+              # Si el usuario ya existe, extraer los puntos actuales, sumar los nuevos, y actualizar nivel e insignia
+              CURRENT_POINTS=$(echo "$line" | awk '{print $3}')
+              UPDATED_POINTS=$((CURRENT_POINTS + NEW_POINTS))
+              
+              # Asignar el nivel e insignia según los puntos
+              if [[ $UPDATED_POINTS -ge 1500 ]]; then
+                LEVEL="Documentador Retador"
+                BADGE="![Insignia Retador](insignias/Insignia-Retador.png)"
+              elif [[ $UPDATED_POINTS -ge 1200 ]]; then
+                LEVEL="Documentador Maestro"
+                BADGE="![Insignia Maestro](insignias/Insignia-Maestro.png)"
+              elif [[ $UPDATED_POINTS -ge 1000 ]]; then
+                LEVEL="Documentador Intermedio Avanzado"
+                BADGE="![Insignia Intermedio Avanzado](insignias/Insignia-IntermedioAvanzado.png)"
+              elif [[ $UPDATED_POINTS -ge 800 ]]; then
+                LEVEL="Documentador Intermedio"
+                BADGE="![Insignia Intermedio](insignias/Insignia-Intermedio.png)"
+              elif [[ $UPDATED_POINTS -ge 500 ]]; then
+                LEVEL="Documentador Principiante"
+                BADGE="![Insignia Principiante](insignias/Insignia-Principiante.png)"
+              else
+                LEVEL="Documentador Novato"
+                BADGE="![Insignia Novato](insignias/Insignia-Novato.png)"
+              fi
+              
+              # Actualizar la línea del desarrollador con los nuevos puntos, nivel e insignia
+              echo "| $GITHUB_ACTOR | $UPDATED_POINTS | $LEVEL | $BADGE |" >> "$TEMP_FILE"
             else
-              LEVEL="Documentador Novato"
-              BADGE="![Insignia Novato](insignias/Insignia-Novato.png)"
+              # Mantener las otras líneas intactas
+              echo "$line" >> "$TEMP_FILE"
             fi
-            # Actualizar la fila del desarrollador con los nuevos puntos, nivel e insignia
-            sed -i "s/| $GITHUB_ACTOR | $CURRENT_POINTS |.*|/| $GITHUB_ACTOR | $UPDATED_POINTS | $LEVEL | $BADGE |/" "$POINTS_FILE"
-          else
-            # Si el desarrollador no está en la tabla, agregarlo con los puntos iniciales
-            echo "| $GITHUB_ACTOR | $NEW_POINTS | Documentador Novato | ![Insignia Novato](insignias/Insignia-Novato.png) |" >> "$POINTS_FILE"
-          fi
+          done < "$POINTS_FILE"
+          
+          # Reemplazar el archivo original con el nuevo archivo actualizado
+          mv "$TEMP_FILE" "$POINTS_FILE"
         else
           # Si el archivo no existe, crearlo y agregar la tabla inicial
           echo "# Tabla de Puntuación" > "$POINTS_FILE"
@@ -68,6 +78,3 @@ jobs:
         git push origin HEAD:main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-
