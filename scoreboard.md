@@ -1,3 +1,7 @@
+![Insignias](/insignias)
+
+
+
 # Tabla de Puntuación
 
 | Desarrollador      | Puntos  | Nivel               | Insignia                       |
