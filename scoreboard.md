@@ -10,3 +10,4 @@
 |                    | > 1.500 | Documentador Retador  | ![Insignia Novato](insignias/Insignia-Retador.png) |
 
 
+| Kratoslegend | 100 |
